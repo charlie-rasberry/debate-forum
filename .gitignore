@@ -1,0 +1,19 @@
+# Virtual environment directories
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+CACHEDIR.TAG
+
+# IDE-specific directories
+.idea/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Logs and temporary files
+*.log
+
+# Environment variable files (if added later)
+.env
