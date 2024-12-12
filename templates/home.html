@@ -4,11 +4,16 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Debate Forum Home Page</title>
+    <title>Home Page</title>
     <h1>Hello Debate Forum</h1>
-    <a href="/register">Register</a>
-    <a href="/login">Login</a>
-    <a href="/topic">Topic</a>
+    <ul>
+        <li>Last Visit: {{ last_visit }}</li>
+        <li>Welcome {{ session['username'] }}</li>
+        <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
+        <li><a href="\login">Login</a></li>
+        <li><a href="\register">Register</a></li>
+        <li><a href="\"> Home</a></li>
+    </ul>
 </head>
 <body bgcolor="#b0c4de">
 

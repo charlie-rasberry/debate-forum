@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, session
 import sqlite3, hashlib, datetime
 from sqlite3 import Error
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'mysecretkey'
+app.config['SECRET_KEY'] = 'cripple'
 db = sqlite3.connect("debate.sqlite", check_same_thread=False)
 cursor = db.cursor()
 
@@ -17,6 +17,12 @@ class User:
 @app.route('/')
 def home():
     return render_template('home.html')
+
+@app.route('/signout')
+def signout():
+    session.clear()
+    flash('You have successfully signed out.')
+    return redirect(url_for('login'))
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -53,6 +59,7 @@ def login():
             user = cursor.fetchone()
             if user:
                 # Redirect to the home page if the username and password are correct
+                session['username'] = username
                 return redirect(url_for('home'))
             else:
                 # Display an error message if the username or password is incorrect
