@@ -1,0 +1,216 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header nav {
+    background-color: #2c3e50; /* Dark gray/blue background */
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center; /* Vertically center content */
+    justify-content: center; /* Align items to the left */
+    gap: 20px; /* Add space between logo and items */
+}
+
+header nav .logo {
+    margin-right: 20px; /* Space between the logo and the nav items */
+}
+
+header nav ol {
+    list-style-type: none; /* Remove default bullet points */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center; /* Vertically center items */
+}
+
+
+header nav ol li {
+    display: flex; /* Use flex for proper alignment */
+    align-items: center; /* Center items vertically */
+    padding: 0 10px; /* Space around text */
+    position: relative;
+}
+
+header nav ol li:not(:last-child)::after {
+    content: "|"; /* Add the vertical separator */
+    color: white;
+    margin-left: 10px; /* Space to the left of the separator */
+    font-weight: bold; /* Make separator visually consistent */
+}
+
+header nav ol li a {
+    color: white;
+    text-decoration: none; /* Remove underline */
+}
+
+header nav ol li a:hover {
+    text-decoration: underline; /* Add underline on hover */
+}
+
+header nav .actions button {
+    background-color: #3498db; /* Bright blue background */
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 3px; /* Rounded corners */
+}
+
+header nav .actions button:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+}
+
+/* Login / Reg */
+/* Login and Register Page Styles */
+
+/* Centering the form container */
+#auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 60px); /* Adjust based on navbar height */
+    background-color: #f5f7fa; /* Light gray background */
+}
+
+/* Form styling */
+#auth-container form {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px 30px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Input fields */
+#auth-container form input[type="text"],
+#auth-container form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Submit button */
+#auth-container form input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db; /* Bright blue */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#auth-container form input[type="submit"]:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+}
+
+/* Additional text and links */
+#auth-container form p {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+#auth-container form a {
+    color: #3498db;
+    font-weight: bold;
+    text-decoration: none;
+    border: 1px solid #3498db;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#auth-container form a:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Create Topic Section */
+#create-topic {
+    margin: 20px 0;
+    text-align: center;
+}
+
+#create-topic button {
+    background-color: #3498db; /* Bright blue background */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#create-topic button:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+}
+
+#create-topic form {
+    margin-top: 15px;
+    display: none; /* Initially hidden */
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#create-topic form input[type="text"] {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+#create-topic form input[type="submit"] {
+    background-color: #3498db; /* Bright blue */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#create-topic form input[type="submit"]:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+}
+
+/* Topics Section */
+#topics ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#topics ul li {
+    background: #f9f9f9;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#topics ul li p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+#topics ul li p strong {
+    font-size: 16px;
+    color: #333;
+}

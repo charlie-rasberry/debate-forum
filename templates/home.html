@@ -1,21 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-
-
 <head>
     <meta charset="UTF-8">
-    <title>Home Page</title>
-    <h1>Hello Debate Forum</h1>
-    <ul>
-        <li>Last Visit: {{ last_visit }}</li>
-        <li>Welcome {{ session['username'] }}</li>
-        <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
-        <li><a href="\login">Login</a></li>
-        <li><a href="\register">Register</a></li>
-        <li><a href="\"> Home</a></li>
-    </ul>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Debate Forum{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        // Toggle visibility of the create topic form
+        function toggleCreateTopic() {
+            const form = document.getElementById('create-topic-form');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
 </head>
-<body bgcolor="#b0c4de">
+<body>
+    <header>
+        <nav>
+            <span class="logo">Logo / Banner</span>
+            <ol>
+                {% if session.get('last_visit') %}
+                    <li>Last Visit: {{ session['last_visit'] }}</li>
+                {% endif %}
+                {% if session.get('username') %}
+                    <li>Welcome {{ session['username'] }}</li>
+                    <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('register') }}">Register</a></li>
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+            </ol>
+        </nav>
+    </header>
+    <main>
+        <!-- Create Topic Section -->
+        <section id="create-topic">
+            {% if session.get('username') %}
+                <button onclick="toggleCreateTopic()">Create Topic</button>
+                <form id="create-topic-form" method="post" action="/" style="display: none;">
+                    <h2>Create a Topic</h2>
+                    <input type="text" name="topic_name" placeholder="Enter Topic Title" required>
+                    <input type="submit" value="Post">
+                </form>
+            {% else %}
+                <p>Please <a href="{{ url_for('login') }}">log in</a> to create a topic.</p>
+            {% endif %}
+        </section>
 
+        <!-- Topics Section -->
+        <section id="topics">
+    <h2>Topics</h2>
+    <ul>
+        {% if topics %}
+            {% for topic in topics %}
+                <li>
+                    <p><strong>{{ topic['topicName'] }}</strong></p>
+                    <p>Created by {{ topic['userName'] }} on {{ topic['creationTime'] }}</p>
+                </li>
+            {% endfor %}
+        {% else %}
+            <p>No topics available.</p>
+        {% endif %}
+    </ul>
+</section>
+
+    </main>
 </body>
 </html>

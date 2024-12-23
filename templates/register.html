@@ -2,20 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
-    <h1>Register Page</h1>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Debate Forum - Register{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-<body bgcolor="#b0c4de">
-<form method="post" action="/register">
-    <h2>Username</h2>
-    <input type="text" name="username" placeholder="Your Username">
-    <h2>Password</h2>
-    <input type="password" name="password" placeholder="Your Password"> <br></br>
-    <input type="submit" value="Register">
-</form>
-
-<p>Already Have An Account ?</p>
-<a href="/login">Sign In</a>
-
+<body>
+    <header>
+        <nav>
+            <span class="logo">Logo / Banner</span>
+        </nav>
+    </header>
+    <main>
+        <div id="auth-container">
+            <form method="post" action="/register">
+                <h1>Sign Up</h1>
+                <input type="text" name="username" placeholder="Your Username" required>
+                <input type="password" name="password" placeholder="Your Password" required>
+                <input type="submit" value="Register">
+                <p>Already have an account? <a href="{{ url_for('login') }}">Sign In</a></p>
+            </form>
+        </div>
+    </main>
 </body>
 </html>
