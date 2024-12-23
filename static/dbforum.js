@@ -1,18 +1,18 @@
-// Function to convert Unix timestamp to a readable date-time format
+// converts a unix timestamp into a readable date-time format
 function convertUnixTimestamp(unixTimestamp) {
-    const date = new Date(unixTimestamp * 1000); // Multiply by 1000 to convert seconds to milliseconds
-    return date.toLocaleString(); // Returns a locale-specific string (e.g., "MM/DD/YYYY, HH:mm:ss")
+    const date = new Date(unixTimestamp * 1000); // unix timestamps are in seconds; eed milliseconds for JS Date
+    return date.toLocaleString(); // formats the date into a localized string, e.g., "MM/DD/YYYY, HH:mm:ss"
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Find all elements with the class "timestamp"
+    // find all elements with the class "timestamp"
     const timestampElements = document.querySelectorAll(".timestamp");
 
     timestampElements.forEach(element => {
-        // Get the Unix timestamp from the data attribute
+        // grab the unix timestamp from the data-timestamp attribute
         const unixTimestamp = element.getAttribute("data-timestamp");
 
-        // Convert the timestamp and set the text content
+        // convert it into a readable format and update the element's text
         element.textContent = convertUnixTimestamp(unixTimestamp);
     });
 });

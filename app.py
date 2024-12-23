@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, url_for, flash, redirect, session
 import sqlite3, hashlib, datetime
 from sqlite3 import Error
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'cripple'
 db = sqlite3.connect("debate.sqlite", check_same_thread=False)
@@ -19,27 +20,27 @@ class User:
 def home():
     if request.method == 'POST':
         if 'username' not in session:
-            flash('You must be logged in to create a topic.')
+            flash('you need to log in before you can create a topic.')
             return redirect(url_for('login'))
 
-        # Get the topic name from the form
+        # get the topic name from the form
         topic_name = request.form.get('topic_name')
         current_time = int(datetime.datetime.now().timestamp())
-        user_id = session['user_id']  # Logged-in user's ID
+        user_id = session['user_id']  # the id of the logged-in user
 
         try:
-            # Insert the topic into the database
+            # add the topic to the database
             cursor.execute("""
                 INSERT INTO topic (topicName, postingUser, creationTime, updateTime)
                 VALUES (?, ?, ?, ?)
             """, (topic_name, user_id, current_time, current_time))
             db.commit()
-            flash('Topic created successfully!')
+            flash('topic created successfully!')
         except Error as e:
-            print(f"Error creating topic: {e}")
-            flash('An error occurred. Please try again.')
+            print(f"error creating topic: {e}")
+            flash('something went wrong. please try again.')
 
-    # Fetch topics, sorted by creationTime in descending order
+    # fetch topics and sort them by when they were created, newest first
     topics = []
     try:
         cursor.execute("""
@@ -50,7 +51,7 @@ def home():
         """)
         topics_raw = cursor.fetchall()
 
-        # Convert raw tuples to dictionaries
+        # turn the database results into a more useful format
         for topic in topics_raw:
             topics.append({
                 'topicID': topic[0],
@@ -59,19 +60,18 @@ def home():
                 'creationTime': datetime.datetime.fromtimestamp(topic[3]).strftime('%Y-%m-%d %H:%M:%S')
             })
     except Error as e:
-        print(f"Error fetching topics: {e}")
+        print(f"error fetching topics: {e}")
     return render_template('home.html', last_visit=session.get('last_visit'), topics=topics)
-
 
 @app.route('/topic/<int:topic_id>', methods=['GET', 'POST'])
 def view_topic(topic_id):
-    # Handle creating a claim (POST request)
+    # if it's a post request, we're adding a claim to the topic
     if request.method == 'POST':
         if 'username' not in session:
-            flash('You must be logged in to add a claim.')
+            flash('you need to log in to add a claim.')
             return redirect(url_for('login'))
 
-        # Get the form data
+        # grab the data from the form
         claim_text = request.form.get('claim_text')
         related_claim_id = request.form.get('related_claim')
         relation_type = request.form.get('relation_type')
@@ -79,42 +79,39 @@ def view_topic(topic_id):
         user_id = session['user_id']
 
         try:
-            # Insert the new claim into the `claim` table
+            # add the new claim to the database
             cursor.execute("""
                 INSERT INTO claim (topic, postingUser, creationTime, updateTime, text)
                 VALUES (?, ?, ?, ?, ?)
             """, (topic_id, user_id, current_time, current_time, claim_text))
             db.commit()
 
-            # Get the ID of the newly created claim
-            new_claim_id = cursor.lastrowid
-
-            # If a related claim is selected, add the relationship
+            # if there's a related claim, link it
             if related_claim_id and relation_type:
                 relation_type_map = {
-                    "opposed": 1,     # Assuming ID 1 is for "Opposed"
-                    "equivalent": 2   # Assuming ID 2 is for "Equivalent"
+                    "opposed": 1,  # assume 1 means "opposed"
+                    "equivalent": 2  # assume 2 means "equivalent"
                 }
                 relation_type_id = relation_type_map.get(relation_type)
 
                 cursor.execute("""
                     INSERT INTO claimToClaim (first, second, claimRelType)
                     VALUES (?, ?, ?)
-                """, (new_claim_id, related_claim_id, relation_type_id))
+                """, (cursor.lastrowid, related_claim_id, relation_type_id))
                 db.commit()
 
-            flash('Claim added successfully!')
+            flash('claim added successfully!')
         except Error as e:
-            print(f"Error adding claim: {e}")
-            flash('An error occurred. Please try again.')
+            print(f"error adding claim: {e}")
+            flash('something went wrong. please try again.')
 
         return redirect(url_for('view_topic', topic_id=topic_id))
 
-    # Fetch topic details (GET request)
+    # if it's a get request, fetch and display the topic
     topic = None
     claims = []
     try:
-        # Query the topic details
+        # get the topic details
         cursor.execute("""
             SELECT topic.topicName, user.userName, topic.creationTime
             FROM topic
@@ -129,7 +126,7 @@ def view_topic(topic_id):
                 'creationTime': datetime.datetime.fromtimestamp(topic_data[2]).strftime('%Y-%m-%d %H:%M:%S')
             }
 
-        # Query the claims associated with the topic
+        # get all the claims for the topic
         cursor.execute("""
             SELECT claim.claimID, claim.text, user.userName, claim.creationTime
             FROM claim
@@ -139,69 +136,60 @@ def view_topic(topic_id):
         """, (topic_id,))
         claims_raw = cursor.fetchall()
 
-        # Convert raw tuples into dictionaries
-        claims = [
-            {
+        # format the claims into a list of dictionaries
+        for claim in claims_raw:
+            claims.append({
                 'claimID': claim[0],
                 'text': claim[1],
                 'userName': claim[2],
                 'creationTime': datetime.datetime.fromtimestamp(claim[3]).strftime('%Y-%m-%d %H:%M:%S'),
                 'relatedClaims': []
-            }
-            for claim in claims_raw
-        ]
+            })
 
-        # Fetch relationships for each claim
-        for claim in claims:
+            # get the relationships for this claim
             cursor.execute("""
                 SELECT ctc.second AS relatedClaimID, ctcType.claimRelType AS relationType
                 FROM claimToClaim ctc
                 JOIN claimToClaimType ctcType ON ctc.claimRelType = ctcType.claimRelTypeID
                 WHERE ctc.first = ?
-            """, (claim['claimID'],))
+            """, (claim[-1]['claimID'],))
             related_raw = cursor.fetchall()
-            claim['relatedClaims'] = [
-                {
-                    'relatedClaimID': related[0],
-                    'relationType': related[1]
-                }
-                for related in related_raw
-            ]
+            claim['relatedClaims'] = [{'relatedClaimID': r[0], 'relationType': r[1]} for r in related_raw]
     except Error as e:
-        print(f"Error fetching topic or claims: {e}")
-        flash('An error occurred. Please try again.')
+        print(f"error fetching topic or claims: {e}")
+        flash('something went wrong. please try again.')
 
-    # Render the topic view template
     return render_template('view_topic.html', topic=topic, claims=claims, topic_id=topic_id)
 
 @app.route('/claim/<int:claim_id>', methods=['GET', 'POST'])
 def view_claim(claim_id):
+    # handle replies to claims if it's a post request
     if request.method == 'POST':
         if 'username' not in session:
-            flash('You must be logged in to post a reply.')
+            flash('you need to log in to post a reply.')
             return redirect(url_for('login'))
 
         reply_text = request.form.get('reply_text')
-        reply_type = request.form.get('reply_type')  # Get the reply type
+        reply_type = request.form.get('reply_type')  # get the type of reply (e.g., clarify, for, against)
         current_time = int(datetime.datetime.now().timestamp())
         user_id = session['user_id']
 
         try:
-            # Insert the reply into the `replyText` table
+            # add the reply to the database
             cursor.execute("""
                 INSERT INTO replyText (postingUser, creationTime, text)
                 VALUES (?, ?, ?)
             """, (user_id, current_time, reply_text))
             db.commit()
 
-            # Get the ID of the inserted reply
+            # get the id of the new reply
             reply_id = cursor.lastrowid
 
-            # Insert the relationship into the `replyToClaim` table
+            # map reply type to its id and link the reply to the claim
             reply_type_map = {
-                "clarify": 1,  # Assuming ID 1 is for "Clarify"
-                "for": 2,      # Assuming ID 2 is for "For"
-                "against": 3   # Assuming ID 3 is for "Against"
+                "clarify": 1,  # assume 1 means "clarify"
+                "for": 2,      # assume 2 means "for"
+                "against": 3   # assume 3 means "against"
             }
             reply_type_id = reply_type_map.get(reply_type)
 
@@ -211,14 +199,14 @@ def view_claim(claim_id):
             """, (reply_id, claim_id, reply_type_id))
             db.commit()
 
-            flash('Reply posted successfully!')
+            flash('reply posted successfully!')
         except Error as e:
-            print(f"Error posting reply: {e}")
-            flash('An error occurred. Please try again.')
+            print(f"error posting reply: {e}")
+            flash('something went wrong. please try again.')
 
         return redirect(url_for('view_claim', claim_id=claim_id))
 
-    # Fetch claim and replies (existing code remains unchanged)
+    # if it's a get request, show the claim and any replies to it
     claim = {}
     try:
         cursor.execute("""
@@ -229,12 +217,12 @@ def view_claim(claim_id):
         """, (claim_id,))
         claim = cursor.fetchone()
     except Error as e:
-        print(f"Error fetching claim: {e}")
+        print(f"error fetching claim: {e}")
 
-    # Fetch replies and their nested replies
+    # get replies and any nested replies for this claim
     replies = []
     try:
-        # Fetch all replies directly linked to the claim
+        # fetch replies directly related to the claim
         cursor.execute("""
             SELECT replyText.replyTextID, replyText.text, user.userName, replyText.creationTime, replyToClaimType.claimReplyType
             FROM replyText
@@ -245,6 +233,7 @@ def view_claim(claim_id):
             ORDER BY replyText.creationTime ASC
         """, (claim_id,))
         replies_raw = cursor.fetchall()
+
         for reply in replies_raw:
             replies.append({
                 'text': reply[1],
@@ -254,7 +243,7 @@ def view_claim(claim_id):
                 'replyTextID': reply[0]
             })
 
-            # Fetch nested replies for each reply
+            # fetch any replies to this reply
             cursor.execute("""
                 SELECT replyText.text, user.userName, replyText.creationTime, replyToReplyType.replyReplyType
                 FROM replyText
@@ -274,134 +263,125 @@ def view_claim(claim_id):
                 } for nested in nested_replies
             ]
     except Error as e:
-        print(f"Error fetching replies: {e}")
+        print(f"error fetching replies: {e}")
 
     return render_template('view_claim.html', claim=claim, replies=replies)
 
 @app.route('/reply_to_reply/<int:reply_id>', methods=['POST'])
 def reply_to_reply(reply_id):
+    # handle replies to replies
     if 'username' not in session:
-        flash('You must be logged in to post a reply.')
+        flash('you need to log in to post a reply.')
         return redirect(url_for('login'))
 
     reply_text = request.form.get('reply_text')
-    reply_type = request.form.get('reply_type')  # Get the reply type
+    reply_type = request.form.get('reply_type')  # get the reply type
     current_time = int(datetime.datetime.now().timestamp())
     user_id = session['user_id']
 
     try:
-        # Insert the new reply into `replyText` table
+        # add the reply to the database
         cursor.execute("""
             INSERT INTO replyText (postingUser, creationTime, text)
             VALUES (?, ?, ?)
         """, (user_id, current_time, reply_text))
         db.commit()
 
-        # Get the ID of the newly inserted reply
+        # get the id of the new reply
         new_reply_id = cursor.lastrowid
 
-        # Map reply type to its ID
+        # map the reply type to its id and link it to the parent reply
         reply_type_map = {
-            "evidence": 1,  # Assuming ID 1 is for "Evidence"
-            "support": 2,   # Assuming ID 2 is for "Support"
-            "rebuttal": 3   # Assuming ID 3 is for "Rebuttal"
+            "evidence": 1,  # assume 1 means "evidence"
+            "support": 2,   # assume 2 means "support"
+            "rebuttal": 3   # assume 3 means "rebuttal"
         }
         reply_type_id = reply_type_map.get(reply_type)
 
-        # Insert the relationship into `replyToReply` table
         cursor.execute("""
             INSERT INTO replyToReply (reply, parent, replyToReplyRelType)
             VALUES (?, ?, ?)
         """, (new_reply_id, reply_id, reply_type_id))
         db.commit()
 
-        flash('Reply posted successfully!')
+        flash('reply posted successfully!')
     except Error as e:
-        print(f"Error posting reply to reply: {e}")
-        flash('An error occurred. Please try again.')
+        print(f"error posting reply to reply: {e}")
+        flash('something went wrong. please try again.')
 
-    # Redirect back to the claim page
     return redirect(request.referrer)
-
 
 @app.route('/signout')
 def signout():
+    # log out the user
     session.clear()
-    flash('You have successfully signed out.')
+    flash('you have successfully signed out.')
     return redirect(url_for('login'))
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    # handle user registration
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
-        # Hash the password
+        # hash the password
         password_hash = hashlib.sha256(password.encode()).hexdigest()
+        current_time = int(datetime.datetime.now().timestamp())
 
-        current_time = int(datetime.datetime.now().timestamp())  # Current Unix timestamp
-
-        user = User(None, username, password_hash, False, current_time, current_time)  # Same timestamp for creation and last visit
         try:
             cursor.execute(
                 "INSERT INTO user (userName, passwordHash, isAdmin, creationTime, lastVisit) VALUES (?, ?, ?, ?, ?)",
-                (user.userName, user.passwordHash, user.isAdmin, user.creationTime, user.lastVisit)
+                (username, password_hash, False, current_time, current_time)
             )
             db.commit()
-            flash('Registration successful! Please log in.')
+            flash('registration successful! please log in.')
             return redirect(url_for('login'))
         except Error as e:
             print(e)
-            flash('An error occurred. Please try again.')
+            flash('something went wrong. please try again.')
 
     return render_template('register.html')
 
-
 @app.before_request
 def update_last_visit():
+    # update the last visit time for logged-in users
     if 'username' in session:
         try:
-            # Update the lastVisit field in the database
             cursor.execute("UPDATE user SET lastVisit=? WHERE userID=?", (datetime.datetime.now().timestamp(), session['user_id']))
             db.commit()
-
-            # Update the session's `last_visit` for display purposes
             session['last_visit'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         except Error as e:
-            print(f"Error updating last visit: {e}")
+            print(f"error updating last visit: {e}")
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    # handle user login
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
 
         try:
-            # Hash the provided password and verify against the database
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
             cursor.execute("SELECT * FROM user WHERE userName=? AND passwordHash=?", (username, hashed_password))
             user = cursor.fetchone()
 
             if user:
-                # Store username and last visit in session
                 session['username'] = username
-                session['user_id'] = user[0]  # Assuming userID is the first column in the `user` table
-                session['last_visit'] = datetime.datetime.fromtimestamp(float(user[5])).strftime('%Y-%m-%d %H:%M:%S')  # Convert Unix timestamp to readable format
+                session['user_id'] = user[0]
+                session['last_visit'] = datetime.datetime.fromtimestamp(float(user[5])).strftime('%Y-%m-%d %H:%M:%S')
 
-                # Update the lastVisit field in the database (ONLY ON LOGIN)
                 cursor.execute("UPDATE user SET lastVisit=? WHERE userID=?", (datetime.datetime.now().timestamp(), user[0]))
                 db.commit()
 
                 return redirect(url_for('home'))
             else:
-                flash('Invalid username or password.')
+                flash('invalid username or password.')
         except Error as e:
             print(e)
-            flash('An error occurred. Please try again.')
+            flash('something went wrong. please try again.')
 
     return render_template('login.html')
-
-
-
 
 @app.route("/topic")
 def topic():

@@ -1,4 +1,4 @@
-/* General Styles */
+/* general Style */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -6,17 +6,17 @@ body {
 }
 
 header nav {
-    background-color: #2c3e50; /* Dark gray/blue background */
+    background-color: #2c3e50; /* dark gray/blue background */
     color: white;
     padding: 10px 20px;
     display: flex;
-    align-items: center; /* Vertically center content */
-    justify-content: center; /* Align items to the left */
-    gap: 20px; /* Add space between logo and items */
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
 }
 
 header nav .logo {
-    margin-right: 20px; /* Space between the logo and the nav items */
+    margin-right: 20px; /* space between the logo and the nav items */
 }
 
 header nav ol {
@@ -24,22 +24,22 @@ header nav ol {
     margin: 0;
     padding: 0;
     display: flex;
-    align-items: center; /* Vertically center items */
+    align-items: center;
 }
 
 
 header nav ol li {
-    display: flex; /* Use flex for proper alignment */
-    align-items: center; /* Center items vertically */
-    padding: 0 10px; /* Space around text */
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
     position: relative;
 }
 
 header nav ol li:not(:last-child)::after {
     content: "|"; /* Add the vertical separator */
     color: white;
-    margin-left: 10px; /* Space to the left of the separator */
-    font-weight: bold; /* Make separator visually consistent */
+    margin-left: 10px;
+    font-weight: bold;
 }
 
 header nav ol li a {
@@ -58,15 +58,14 @@ header nav .actions button {
     padding: 5px 10px;
     cursor: pointer;
     font-size: 14px;
-    border-radius: 3px; /* Rounded corners */
+    border-radius: 3px;
 }
 
 header nav .actions button:hover {
-    background-color: #2980b9; /* Darker blue on hover */
+    background-color: #2980b9; /* darker blue  */
 }
 
 /* Login / Reg */
-/* Login and Register Page Styles */
 
 /* Centering the form container */
 #auth-container {
@@ -103,7 +102,7 @@ header nav .actions button:hover {
 #auth-container form input[type="submit"] {
     width: 100%;
     padding: 10px;
-    background-color: #3498db; /* Bright blue */
+    background-color: #3498db;
     color: white;
     border: none;
     border-radius: 4px;
@@ -112,10 +111,10 @@ header nav .actions button:hover {
 }
 
 #auth-container form input[type="submit"]:hover {
-    background-color: #2980b9; /* Darker blue on hover */
+    background-color: #2980b9; /* Darker blue*/
 }
 
-/* Additional text and links */
+/* other  text and links */
 #auth-container form p {
     margin-top: 15px;
     font-size: 14px;
@@ -156,12 +155,12 @@ header nav .actions button:hover {
 }
 
 #create-topic button:hover {
-    background-color: #2980b9; /* Darker blue on hover */
+    background-color: #2980b9; /* Darker blue */
 }
 
 #create-topic form {
     margin-top: 15px;
-    display: none; /* Initially hidden */
+    display: none; /* Caused error by staying hidden */
     background: white;
     padding: 20px;
     border-radius: 8px;
@@ -178,7 +177,7 @@ header nav .actions button:hover {
 }
 
 #create-topic form input[type="submit"] {
-    background-color: #3498db; /* Bright blue */
+    background-color: #3498db; /* Bright */
     color: white;
     border: none;
     padding: 10px 15px;
@@ -188,7 +187,7 @@ header nav .actions button:hover {
 }
 
 #create-topic form input[type="submit"]:hover {
-    background-color: #2980b9; /* Darker blue on hover */
+    background-color: #2980b9;
 }
 
 /* Topics Section */
@@ -215,7 +214,7 @@ header nav .actions button:hover {
     color: #333;
 }
 
-/* Claims Section (inherits styles similar to Topics) */
+/* Claims Section */
 #claims ul {
     list-style-type: none;
     padding: 0;
@@ -239,7 +238,7 @@ header nav .actions button:hover {
     color: #333;
 }
 
-/* Create Claim Section (similar to Create Topic Section) */
+/* Create Claim */
 #create-claim {
     margin: 20px 0;
     text-align: center;
@@ -265,7 +264,7 @@ header nav .actions button:hover {
 }
 
 #create-claim form input[type="submit"] {
-    background-color: #3498db; /* Bright blue */
+    background-color: #3498db;
     color: white;
     border: none;
     padding: 10px 15px;
@@ -275,7 +274,7 @@ header nav .actions button:hover {
 }
 
 #create-claim form input[type="submit"]:hover {
-    background-color: #2980b9; /* Darker blue on hover */
+    background-color: #2980b9;
 }
 
 /* Replies Section */
@@ -306,11 +305,11 @@ header nav .actions button:hover {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
-    resize: vertical; /* Allow vertical resizing */
+    resize: vertical;
 }
 
 #create-reply form input[type="submit"] {
-    background-color: #3498db; /* Bright blue */
+    background-color: #3498db;
     color: white;
     border: none;
     padding: 10px 15px;
@@ -320,5 +319,5 @@ header nav .actions button:hover {
 }
 
 #create-reply form input[type="submit"]:hover {
-    background-color: #2980b9; /* Darker blue on hover */
+    background-color: #2980b9;
 }

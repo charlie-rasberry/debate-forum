@@ -1,8 +1,7 @@
 
 import sqlite3
-db = sqlite3.connect("debate.sqlite")
-cursor = db.cursor()
-with open("5013dbinit.sql") as f:
-    cursor.executescript(f.read())
-db.commit()
-db.close()
+db = sqlite3.connect('debate.sqlite')
+with open("dump.sq1", "w") as f:
+    for line in db.iterdump():
+        f.write(line + '\n')
+
