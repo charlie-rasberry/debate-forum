@@ -5,6 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ claim[1] }}</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Fixed position for the "Post a Reply" section */
+        #create-reply {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f9f9f9; /* Light background for the section */
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for emphasis */
+            padding: 10px 20px;
+            z-index: 1000; /* Ensures it stays on top of other content */
+        }
+
+        #create-reply h3 {
+            margin: 0 0 10px 0;
+        }
+
+        #create-reply form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #create-reply textarea {
+            width: 100%;
+            resize: none;
+        }
+
+        #create-reply select, #create-reply input[type="submit"] {
+            width: auto;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -24,35 +56,33 @@
     </header>
     <main>
         <!-- Claim Details -->
-       <section id="claim-details">
-    <h2>{{ claim[1] }}</h2>
-    <p>
-        Created by {{ claim[2] }} on
-        <span id="claim-creation-time" data-timestamp="{{ claim[3] }}"></span>
-    </p>
-</section>
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Convert the claim creation time
-        const claimCreationElement = document.getElementById("claim-creation-time");
-        if (claimCreationElement) {
-            const unixTimestamp = claimCreationElement.getAttribute("data-timestamp");
-            if (unixTimestamp) {
-                claimCreationElement.textContent = convertUnixTimestamp(unixTimestamp);
-            } else {
-                console.error("Claim creation timestamp is missing.");
+        <section id="claim-details">
+            <h2>{{ claim[1] }}</h2>
+            <p>
+                Created by {{ claim[2] }} on
+                <span id="claim-creation-time" data-timestamp="{{ claim[3] }}"></span>
+            </p>
+        </section>
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Convert the claim creation time
+            const claimCreationElement = document.getElementById("claim-creation-time");
+            if (claimCreationElement) {
+                const unixTimestamp = claimCreationElement.getAttribute("data-timestamp");
+                if (unixTimestamp) {
+                    claimCreationElement.textContent = convertUnixTimestamp(unixTimestamp);
+                } else {
+                    console.error("Claim creation timestamp is missing.");
+                }
             }
+        });
+
+        // Function to convert Unix timestamp to a readable date-time format
+        function convertUnixTimestamp(unixTimestamp) {
+            const date = new Date(unixTimestamp * 1000); // Multiply by 1000 to convert seconds to milliseconds
+            return date.toLocaleString(); // Returns a locale-specific string (e.g., "MM/DD/YYYY, HH:mm:ss")
         }
-    });
-
-    // Function to convert Unix timestamp to a readable date-time format
-    function convertUnixTimestamp(unixTimestamp) {
-        const date = new Date(unixTimestamp * 1000); // Multiply by 1000 to convert seconds to milliseconds
-        return date.toLocaleString(); // Returns a locale-specific string (e.g., "MM/DD/YYYY, HH:mm:ss")
-    }
-</script>
-
-
+        </script>
 
         <!-- Replies Section -->
         <section id="replies">
