@@ -190,10 +190,12 @@ def view_claim(claim_id):
     except Error as e:
         print(f"Error fetching claim: {e}")
 
+    # Fetch replies and their nested replies
     replies = []
     try:
+        # Fetch all replies directly linked to the claim
         cursor.execute("""
-            SELECT replyText.text, user.userName, replyText.creationTime, replyToClaimType.claimReplyType
+            SELECT replyText.replyTextID, replyText.text, user.userName, replyText.creationTime, replyToClaimType.claimReplyType
             FROM replyText
             JOIN user ON replyText.postingUser = user.userID
             JOIN replyToClaim ON replyText.replyTextID = replyToClaim.reply
@@ -202,14 +204,83 @@ def view_claim(claim_id):
             ORDER BY replyText.creationTime ASC
         """, (claim_id,))
         replies_raw = cursor.fetchall()
-        replies = [
-            (reply[0], reply[1], datetime.datetime.fromtimestamp(reply[2]).strftime('%Y-%m-%d %H:%M:%S'), reply[3])
-            for reply in replies_raw
-        ]
+        for reply in replies_raw:
+            replies.append({
+                'text': reply[1],
+                'userName': reply[2],
+                'creationTime': datetime.datetime.fromtimestamp(reply[3]).strftime('%Y-%m-%d %H:%M:%S'),
+                'type': reply[4],
+                'replyTextID': reply[0]
+            })
+
+            # Fetch nested replies for each reply
+            cursor.execute("""
+                SELECT replyText.text, user.userName, replyText.creationTime, replyToReplyType.replyReplyType
+                FROM replyText
+                JOIN user ON replyText.postingUser = user.userID
+                JOIN replyToReply ON replyText.replyTextID = replyToReply.reply
+                JOIN replyToReplyType ON replyToReply.replyToReplyRelType = replyToReplyType.replyReplyTypeID
+                WHERE replyToReply.parent = ?
+                ORDER BY replyText.creationTime ASC
+            """, (reply[0],))
+            nested_replies = cursor.fetchall()
+            replies[-1]['nested_replies'] = [
+                {
+                    'text': nested[0],
+                    'userName': nested[1],
+                    'creationTime': datetime.datetime.fromtimestamp(nested[2]).strftime('%Y-%m-%d %H:%M:%S'),
+                    'type': nested[3]
+                } for nested in nested_replies
+            ]
     except Error as e:
         print(f"Error fetching replies: {e}")
 
     return render_template('view_claim.html', claim=claim, replies=replies)
+
+@app.route('/reply_to_reply/<int:reply_id>', methods=['POST'])
+def reply_to_reply(reply_id):
+    if 'username' not in session:
+        flash('You must be logged in to post a reply.')
+        return redirect(url_for('login'))
+
+    reply_text = request.form.get('reply_text')
+    reply_type = request.form.get('reply_type')  # Get the reply type
+    current_time = int(datetime.datetime.now().timestamp())
+    user_id = session['user_id']
+
+    try:
+        # Insert the new reply into `replyText` table
+        cursor.execute("""
+            INSERT INTO replyText (postingUser, creationTime, text)
+            VALUES (?, ?, ?)
+        """, (user_id, current_time, reply_text))
+        db.commit()
+
+        # Get the ID of the newly inserted reply
+        new_reply_id = cursor.lastrowid
+
+        # Map reply type to its ID
+        reply_type_map = {
+            "evidence": 1,  # Assuming ID 1 is for "Evidence"
+            "support": 2,   # Assuming ID 2 is for "Support"
+            "rebuttal": 3   # Assuming ID 3 is for "Rebuttal"
+        }
+        reply_type_id = reply_type_map.get(reply_type)
+
+        # Insert the relationship into `replyToReply` table
+        cursor.execute("""
+            INSERT INTO replyToReply (reply, parent, replyToReplyRelType)
+            VALUES (?, ?, ?)
+        """, (new_reply_id, reply_id, reply_type_id))
+        db.commit()
+
+        flash('Reply posted successfully!')
+    except Error as e:
+        print(f"Error posting reply to reply: {e}")
+        flash('An error occurred. Please try again.')
+
+    # Redirect back to the claim page
+    return redirect(request.referrer)
 
 
 @app.route('/signout')

@@ -30,42 +30,68 @@
         </section>
 
         <!-- Replies Section -->
-      <section id="replies">
-    <h3>Replies</h3>
-    <ul>
-        {% if replies %}
-            {% for reply in replies %}
-                <li>
-                    <p>{{ reply[0] }}</p>
-                    <p>By {{ reply[1] }} on {{ reply[2] }} (Type: {{ reply[3] }})</p>
-                </li>
-            {% endfor %}
-        {% else %}
-            <p>No replies yet.</p>
-        {% endif %}
-    </ul>
-</section>
-
+        <section id="replies">
+            <h3>Replies</h3>
+            <ul>
+                {% if replies %}
+                    {% for reply in replies %}
+                        <li>
+                            <p>{{ reply.text }}</p>
+                            <p>By {{ reply.userName }} on {{ reply.creationTime }} (Type: {{ reply.type }})</p>
+                            <button onclick="toggleReplyForm('{{ reply.replyTextID }}')">Reply</button>
+                            <form id="reply-form-{{ reply.replyTextID }}" method="post" action="/reply_to_reply/{{ reply.replyTextID }}" style="display: none;">
+                                <textarea name="reply_text" placeholder="Enter your reply" required></textarea>
+                                <label for="reply_type_{{ reply.replyTextID }}">Select Reply Type:</label>
+                                <select name="reply_type" id="reply_type_{{ reply.replyTextID }}" required>
+                                    <option value="evidence">Evidence</option>
+                                    <option value="support">Support</option>
+                                    <option value="rebuttal">Rebuttal</option>
+                                </select>
+                                <input type="submit" value="Post Reply">
+                            </form>
+                            <!-- Nested Replies -->
+                            <ul>
+                                {% for nested in reply.nested_replies %}
+                                    <li>
+                                        <p>{{ nested.text }}</p>
+                                        <p>By {{ nested.userName }} on {{ nested.creationTime }} (Type: {{ nested.type }})</p>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <p>No replies yet.</p>
+                {% endif %}
+            </ul>
+        </section>
 
         <!-- Create Reply Form -->
         {% if session.get('username') %}
         <section id="create-reply">
-    <h3>Post a Reply</h3>
-    <form method="post" action="/claim/{{ claim[0] }}">
-        <textarea name="reply_text" placeholder="Enter your reply" required></textarea>
-        <label for="reply_type">Select Reply Type:</label>
-        <select name="reply_type" id="reply_type" required>
-            <option value="clarify">Clarify</option>
-            <option value="for">For</option>
-            <option value="against">Against</option>
-        </select>
-        <input type="submit" value="Post Reply">
-    </form>
-</section>
-
+            <h3>Post a Reply</h3>
+            <form method="post" action="/claim/{{ claim[0] }}">
+                <textarea name="reply_text" placeholder="Enter your reply" required></textarea>
+                <label for="reply_type">Select Reply Type:</label>
+                <select name="reply_type" id="reply_type" required>
+                    <option value="clarify">Clarify</option>
+                    <option value="for">For</option>
+                    <option value="against">Against</option>
+                </select>
+                <input type="submit" value="Post Reply">
+            </form>
+        </section>
         {% else %}
             <p>Please <a href="{{ url_for('login') }}">log in</a> to post a reply.</p>
         {% endif %}
     </main>
+
+    <script>
+        // Toggle reply form visibility
+        function toggleReplyForm(replyID) {
+            const form = document.getElementById(`reply-form-${replyID}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+    </script>
 </body>
 </html>
