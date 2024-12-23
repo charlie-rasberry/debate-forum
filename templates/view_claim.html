@@ -30,31 +30,39 @@
         </section>
 
         <!-- Replies Section -->
-        <section id="replies">
-            <h3>Replies</h3>
-            <ul>
-                {% if replies %}
-                    {% for reply in replies %}
-                        <li>
-                            <p>{{ reply[0] }}</p>
-                            <p>By {{ reply[1] }} on {{ reply[2] }}</p>
-                        </li>
-                    {% endfor %}
-                {% else %}
-                    <p>No replies yet.</p>
-                {% endif %}
-            </ul>
-        </section>
+      <section id="replies">
+    <h3>Replies</h3>
+    <ul>
+        {% if replies %}
+            {% for reply in replies %}
+                <li>
+                    <p>{{ reply[0] }}</p>
+                    <p>By {{ reply[1] }} on {{ reply[2] }} (Type: {{ reply[3] }})</p>
+                </li>
+            {% endfor %}
+        {% else %}
+            <p>No replies yet.</p>
+        {% endif %}
+    </ul>
+</section>
+
 
         <!-- Create Reply Form -->
         {% if session.get('username') %}
         <section id="create-reply">
-            <h3>Post a Reply</h3>
-            <form method="post" action="/claim/{{ claim[0] }}">
-                <textarea name="reply_text" placeholder="Enter your reply" required></textarea>
-                <input type="submit" value="Post Reply">
-            </form>
-        </section>
+    <h3>Post a Reply</h3>
+    <form method="post" action="/claim/{{ claim[0] }}">
+        <textarea name="reply_text" placeholder="Enter your reply" required></textarea>
+        <label for="reply_type">Select Reply Type:</label>
+        <select name="reply_type" id="reply_type" required>
+            <option value="clarify">Clarify</option>
+            <option value="for">For</option>
+            <option value="against">Against</option>
+        </select>
+        <input type="submit" value="Post Reply">
+    </form>
+</section>
+
         {% else %}
             <p>Please <a href="{{ url_for('login') }}">log in</a> to post a reply.</p>
         {% endif %}

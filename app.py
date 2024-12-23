@@ -60,9 +60,6 @@ def home():
             })
     except Error as e:
         print(f"Error fetching topics: {e}")
-
-    print("Fetched topics from database:", topics_raw)  # Raw data from the database
-    print("Processed topics for template:", topics)  # Processed list of dictionaries
     return render_template('home.html', last_visit=session.get('last_visit'), topics=topics)
 
 
@@ -144,21 +141,33 @@ def view_claim(claim_id):
             return redirect(url_for('login'))
 
         reply_text = request.form.get('reply_text')
+        reply_type = request.form.get('reply_type')  # Get the reply type
         current_time = int(datetime.datetime.now().timestamp())
         user_id = session['user_id']
 
         try:
+            # Insert the reply into the `replyText` table
             cursor.execute("""
                 INSERT INTO replyText (postingUser, creationTime, text)
                 VALUES (?, ?, ?)
             """, (user_id, current_time, reply_text))
             db.commit()
 
+            # Get the ID of the inserted reply
             reply_id = cursor.lastrowid
+
+            # Insert the relationship into the `replyToClaim` table
+            reply_type_map = {
+                "clarify": 1,  # Assuming ID 1 is for "Clarify"
+                "for": 2,      # Assuming ID 2 is for "For"
+                "against": 3   # Assuming ID 3 is for "Against"
+            }
+            reply_type_id = reply_type_map.get(reply_type)
+
             cursor.execute("""
                 INSERT INTO replyToClaim (reply, claim, replyToClaimRelType)
                 VALUES (?, ?, ?)
-            """, (reply_id, claim_id, 1))
+            """, (reply_id, claim_id, reply_type_id))
             db.commit()
 
             flash('Reply posted successfully!')
@@ -166,6 +175,9 @@ def view_claim(claim_id):
             print(f"Error posting reply: {e}")
             flash('An error occurred. Please try again.')
 
+        return redirect(url_for('view_claim', claim_id=claim_id))
+
+    # Fetch claim and replies (existing code remains unchanged)
     claim = {}
     try:
         cursor.execute("""
@@ -181,19 +193,24 @@ def view_claim(claim_id):
     replies = []
     try:
         cursor.execute("""
-            SELECT replyText.text, user.userName, replyText.creationTime
+            SELECT replyText.text, user.userName, replyText.creationTime, replyToClaimType.claimReplyType
             FROM replyText
             JOIN user ON replyText.postingUser = user.userID
-            WHERE replyText.replyTextID IN (
-                SELECT reply FROM replyToClaim WHERE claim = ?
-            )
+            JOIN replyToClaim ON replyText.replyTextID = replyToClaim.reply
+            JOIN replyToClaimType ON replyToClaim.replyToClaimRelType = replyToClaimType.claimReplyTypeID
+            WHERE replyToClaim.claim = ?
             ORDER BY replyText.creationTime ASC
         """, (claim_id,))
-        replies = cursor.fetchall()
+        replies_raw = cursor.fetchall()
+        replies = [
+            (reply[0], reply[1], datetime.datetime.fromtimestamp(reply[2]).strftime('%Y-%m-%d %H:%M:%S'), reply[3])
+            for reply in replies_raw
+        ]
     except Error as e:
         print(f"Error fetching replies: {e}")
 
     return render_template('view_claim.html', claim=claim, replies=replies)
+
 
 @app.route('/signout')
 def signout():
