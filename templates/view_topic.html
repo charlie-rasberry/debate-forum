@@ -30,37 +30,73 @@
         </section>
 
         <!-- Claims Section -->
-        <section id="claims">
-            <h2>Claims</h2>
-            <ul>
-                {% if claims %}
-                    {% for claim in claims %}
-                        <li>
-                            <p>
-                                <strong>
-                                    <a href="{{ url_for('view_claim', claim_id=claim['claimID']) }}">
-                                        {{ claim['text'] }}
+    <section id="claims">
+    <h2>Claims</h2>
+    <ul>
+        {% if claims %}
+            {% for claim in claims %}
+                <li>
+                    <p>
+                        <strong>
+                            <a href="{{ url_for('view_claim', claim_id=claim['claimID']) }}">
+                                {{ claim['text'] }}
+                            </a>
+                        </strong><br>
+                        ID: {{ claim['claimID'] }}
+                    </p>
+                    {% if claim.relatedClaims %}
+                        <ul>
+                            {% for related in claim.relatedClaims %}
+                                <li>
+                                    <a href="{{ url_for('view_claim', claim_id=related.relatedClaimID) }}">
+
+                                        Related Claim: {{ related.relatedClaimID }}
                                     </a>
-                                </strong>
-                            </p>
-                            <p>Created by {{ claim['userName'] }} on {{ claim['creationTime'] }}</p>
-                        </li>
-                    {% endfor %}
-                {% else %}
-                    <p>No claims yet.</p>
-                {% endif %}
-            </ul>
-        </section>
+                                    ({{ related.relationType }})
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No related claims.</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        {% else %}
+            <p>No claims yet.</p>
+        {% endif %}
+    </ul>
+
+</section>
+
+
+
 
         <!-- Create Claim Form -->
         {% if session.get('username') %}
         <section id="create-claim">
-            <h2>Create a Claim</h2>
-            <form method="post" action="/topic/{{ topic_id }}">
-                <textarea name="claim_text" placeholder="Enter your claim" required></textarea>
-                <input type="submit" value="Post Claim">
-            </form>
-        </section>
+    <h2>Create a Claim</h2>
+    <form method="post" action="/topic/{{ topic_id }}">
+        <textarea name="claim_text" placeholder="Enter your claim text" required></textarea>
+
+        <label for="related_claim">Relate to an existing claim (optional):</label>
+        <select name="related_claim" id="related_claim">
+            <option value="">-- None --</option>
+            {% for claim in claims %}
+                <option value="{{ claim['claimID'] }}">{{ claim['claimID'] }}: {{ claim['text'] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="relation_type">Relation Type:</label>
+        <select name="relation_type" id="relation_type">
+            <option value="">-- None --</option>
+            <option value="opposed">Opposed</option>
+            <option value="equivalent">Equivalent</option>
+        </select>
+
+        <input type="submit" value="Post Claim">
+    </form>
+</section>
+
         {% else %}
             <p>Please <a href="{{ url_for('login') }}">log in</a> to create a claim.</p>
         {% endif %}

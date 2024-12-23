@@ -62,7 +62,7 @@
                     {% for reply in replies %}
                         <li>
                             <p>{{ reply.text }}</p>
-                            <p>By {{ reply.userName }} on {{ reply.creationTime }} (Type: {{ reply.type }})</p>
+                            <p>By {{ reply.userName }} on {{ reply.creationTime }} ({{ reply.type }})</p>
                             <button onclick="toggleReplyForm('{{ reply.replyTextID }}')">Reply</button>
                             <form id="reply-form-{{ reply.replyTextID }}" method="post" action="/reply_to_reply/{{ reply.replyTextID }}" style="display: none;">
                                 <textarea name="reply_text" placeholder="Enter your reply" required></textarea>

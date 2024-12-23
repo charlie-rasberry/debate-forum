@@ -71,18 +71,38 @@ def view_topic(topic_id):
             flash('You must be logged in to add a claim.')
             return redirect(url_for('login'))
 
-        # Get the claim text from the form
+        # Get the form data
         claim_text = request.form.get('claim_text')
+        related_claim_id = request.form.get('related_claim')
+        relation_type = request.form.get('relation_type')
         current_time = int(datetime.datetime.now().timestamp())
         user_id = session['user_id']
 
         try:
-            # Insert the claim into the database
+            # Insert the new claim into the `claim` table
             cursor.execute("""
                 INSERT INTO claim (topic, postingUser, creationTime, updateTime, text)
                 VALUES (?, ?, ?, ?, ?)
             """, (topic_id, user_id, current_time, current_time, claim_text))
             db.commit()
+
+            # Get the ID of the newly created claim
+            new_claim_id = cursor.lastrowid
+
+            # If a related claim is selected, add the relationship
+            if related_claim_id and relation_type:
+                relation_type_map = {
+                    "opposed": 1,     # Assuming ID 1 is for "Opposed"
+                    "equivalent": 2   # Assuming ID 2 is for "Equivalent"
+                }
+                relation_type_id = relation_type_map.get(relation_type)
+
+                cursor.execute("""
+                    INSERT INTO claimToClaim (first, second, claimRelType)
+                    VALUES (?, ?, ?)
+                """, (new_claim_id, related_claim_id, relation_type_id))
+                db.commit()
+
             flash('Claim added successfully!')
         except Error as e:
             print(f"Error adding claim: {e}")
@@ -118,14 +138,35 @@ def view_topic(topic_id):
             ORDER BY claim.creationTime DESC
         """, (topic_id,))
         claims_raw = cursor.fetchall()
+
+        # Convert raw tuples into dictionaries
         claims = [
             {
                 'claimID': claim[0],
                 'text': claim[1],
                 'userName': claim[2],
-                'creationTime': datetime.datetime.fromtimestamp(claim[3]).strftime('%Y-%m-%d %H:%M:%S')
-            } for claim in claims_raw
+                'creationTime': datetime.datetime.fromtimestamp(claim[3]).strftime('%Y-%m-%d %H:%M:%S'),
+                'relatedClaims': []
+            }
+            for claim in claims_raw
         ]
+
+        # Fetch relationships for each claim
+        for claim in claims:
+            cursor.execute("""
+                SELECT ctc.second AS relatedClaimID, ctcType.claimRelType AS relationType
+                FROM claimToClaim ctc
+                JOIN claimToClaimType ctcType ON ctc.claimRelType = ctcType.claimRelTypeID
+                WHERE ctc.first = ?
+            """, (claim['claimID'],))
+            related_raw = cursor.fetchall()
+            claim['relatedClaims'] = [
+                {
+                    'relatedClaimID': related[0],
+                    'relationType': related[1]
+                }
+                for related in related_raw
+            ]
     except Error as e:
         print(f"Error fetching topic or claims: {e}")
         flash('An error occurred. Please try again.')
