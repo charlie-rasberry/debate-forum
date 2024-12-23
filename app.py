@@ -136,6 +136,64 @@ def view_topic(topic_id):
     # Render the topic view template
     return render_template('view_topic.html', topic=topic, claims=claims, topic_id=topic_id)
 
+@app.route('/claim/<int:claim_id>', methods=['GET', 'POST'])
+def view_claim(claim_id):
+    if request.method == 'POST':
+        if 'username' not in session:
+            flash('You must be logged in to post a reply.')
+            return redirect(url_for('login'))
+
+        reply_text = request.form.get('reply_text')
+        current_time = int(datetime.datetime.now().timestamp())
+        user_id = session['user_id']
+
+        try:
+            cursor.execute("""
+                INSERT INTO replyText (postingUser, creationTime, text)
+                VALUES (?, ?, ?)
+            """, (user_id, current_time, reply_text))
+            db.commit()
+
+            reply_id = cursor.lastrowid
+            cursor.execute("""
+                INSERT INTO replyToClaim (reply, claim, replyToClaimRelType)
+                VALUES (?, ?, ?)
+            """, (reply_id, claim_id, 1))
+            db.commit()
+
+            flash('Reply posted successfully!')
+        except Error as e:
+            print(f"Error posting reply: {e}")
+            flash('An error occurred. Please try again.')
+
+    claim = {}
+    try:
+        cursor.execute("""
+            SELECT claim.claimID, claim.text, user.userName, claim.creationTime
+            FROM claim
+            JOIN user ON claim.postingUser = user.userID
+            WHERE claim.claimID = ?
+        """, (claim_id,))
+        claim = cursor.fetchone()
+    except Error as e:
+        print(f"Error fetching claim: {e}")
+
+    replies = []
+    try:
+        cursor.execute("""
+            SELECT replyText.text, user.userName, replyText.creationTime
+            FROM replyText
+            JOIN user ON replyText.postingUser = user.userID
+            WHERE replyText.replyTextID IN (
+                SELECT reply FROM replyToClaim WHERE claim = ?
+            )
+            ORDER BY replyText.creationTime ASC
+        """, (claim_id,))
+        replies = cursor.fetchall()
+    except Error as e:
+        print(f"Error fetching replies: {e}")
+
+    return render_template('view_claim.html', claim=claim, replies=replies)
 
 @app.route('/signout')
 def signout():
@@ -222,7 +280,7 @@ def topic():
 
 @app.route("/claim")
 def claim():
-    return render_template('claim.html')
+    return render_template('view_claim.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

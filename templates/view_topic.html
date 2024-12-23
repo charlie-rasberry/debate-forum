@@ -36,7 +36,13 @@
                 {% if claims %}
                     {% for claim in claims %}
                         <li>
-                            <p><strong>{{ claim['text'] }}</strong></p>
+                            <p>
+                                <strong>
+                                    <a href="{{ url_for('view_claim', claim_id=claim['claimID']) }}">
+                                        {{ claim['text'] }}
+                                    </a>
+                                </strong>
+                            </p>
                             <p>Created by {{ claim['userName'] }} on {{ claim['creationTime'] }}</p>
                         </li>
                     {% endfor %}

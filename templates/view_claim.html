@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ claim[1] }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <span class="logo">Logo / Banner</span>
+            <ol>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                {% if session.get('username') %}
+                    <li>Welcome {{ session['username'] }}</li>
+                    <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}">Register</a></li>
+                {% endif %}
+            </ol>
+        </nav>
+    </header>
+    <main>
+        <!-- Claim Details -->
+        <section id="claim-details">
+            <h2>{{ claim[1] }}</h2>
+            <p>Created by {{ claim[2] }} on {{ claim[3] }}</p>
+        </section>
+
+        <!-- Replies Section -->
+        <section id="replies">
+            <h3>Replies</h3>
+            <ul>
+                {% if replies %}
+                    {% for reply in replies %}
+                        <li>
+                            <p>{{ reply[0] }}</p>
+                            <p>By {{ reply[1] }} on {{ reply[2] }}</p>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <p>No replies yet.</p>
+                {% endif %}
+            </ul>
+        </section>
+
+        <!-- Create Reply Form -->
+        {% if session.get('username') %}
+        <section id="create-reply">
+            <h3>Post a Reply</h3>
+            <form method="post" action="/claim/{{ claim[0] }}">
+                <textarea name="reply_text" placeholder="Enter your reply" required></textarea>
+                <input type="submit" value="Post Reply">
+            </form>
+        </section>
+        {% else %}
+            <p>Please <a href="{{ url_for('login') }}">log in</a> to post a reply.</p>
+        {% endif %}
+    </main>
+</body>
+</html>
