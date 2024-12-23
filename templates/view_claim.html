@@ -24,10 +24,35 @@
     </header>
     <main>
         <!-- Claim Details -->
-        <section id="claim-details">
-            <h2>{{ claim[1] }}</h2>
-            <p>Created by {{ claim[2] }} on {{ claim[3] }}</p>
-        </section>
+       <section id="claim-details">
+    <h2>{{ claim[1] }}</h2>
+    <p>
+        Created by {{ claim[2] }} on
+        <span id="claim-creation-time" data-timestamp="{{ claim[3] }}"></span>
+    </p>
+</section>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Convert the claim creation time
+        const claimCreationElement = document.getElementById("claim-creation-time");
+        if (claimCreationElement) {
+            const unixTimestamp = claimCreationElement.getAttribute("data-timestamp");
+            if (unixTimestamp) {
+                claimCreationElement.textContent = convertUnixTimestamp(unixTimestamp);
+            } else {
+                console.error("Claim creation timestamp is missing.");
+            }
+        }
+    });
+
+    // Function to convert Unix timestamp to a readable date-time format
+    function convertUnixTimestamp(unixTimestamp) {
+        const date = new Date(unixTimestamp * 1000); // Multiply by 1000 to convert seconds to milliseconds
+        return date.toLocaleString(); // Returns a locale-specific string (e.g., "MM/DD/YYYY, HH:mm:ss")
+    }
+</script>
+
+
 
         <!-- Replies Section -->
         <section id="replies">
