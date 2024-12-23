@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ topic['topicName'] }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <span class="logo">Logo / Banner</span>
+            <ol>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                {% if session.get('username') %}
+                    <li>Welcome {{ session['username'] }}</li>
+                    <li><a href="{{ url_for('signout') }}">Sign Out</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}">Register</a></li>
+                {% endif %}
+            </ol>
+        </nav>
+    </header>
+    <main>
+        <!-- Topic Details -->
+        <section id="topic-details">
+            <h2>{{ topic['topicName'] }}</h2>
+            <p>Created by {{ topic['userName'] }} on {{ topic['creationTime'] }}</p>
+        </section>
+
+        <!-- Claims Section -->
+        <section id="claims">
+            <h2>Claims</h2>
+            <ul>
+                {% if claims %}
+                    {% for claim in claims %}
+                        <li>
+                            <p><strong>{{ claim['text'] }}</strong></p>
+                            <p>Created by {{ claim['userName'] }} on {{ claim['creationTime'] }}</p>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <p>No claims yet.</p>
+                {% endif %}
+            </ul>
+        </section>
+
+        <!-- Create Claim Form -->
+        {% if session.get('username') %}
+        <section id="create-claim">
+            <h2>Create a Claim</h2>
+            <form method="post" action="/topic/{{ topic_id }}">
+                <textarea name="claim_text" placeholder="Enter your claim" required></textarea>
+                <input type="submit" value="Post Claim">
+            </form>
+        </section>
+        {% else %}
+            <p>Please <a href="{{ url_for('login') }}">log in</a> to create a claim.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

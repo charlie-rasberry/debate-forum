@@ -65,6 +65,78 @@ def home():
     print("Processed topics for template:", topics)  # Processed list of dictionaries
     return render_template('home.html', last_visit=session.get('last_visit'), topics=topics)
 
+
+@app.route('/topic/<int:topic_id>', methods=['GET', 'POST'])
+def view_topic(topic_id):
+    # Handle creating a claim (POST request)
+    if request.method == 'POST':
+        if 'username' not in session:
+            flash('You must be logged in to add a claim.')
+            return redirect(url_for('login'))
+
+        # Get the claim text from the form
+        claim_text = request.form.get('claim_text')
+        current_time = int(datetime.datetime.now().timestamp())
+        user_id = session['user_id']
+
+        try:
+            # Insert the claim into the database
+            cursor.execute("""
+                INSERT INTO claim (topic, postingUser, creationTime, updateTime, text)
+                VALUES (?, ?, ?, ?, ?)
+            """, (topic_id, user_id, current_time, current_time, claim_text))
+            db.commit()
+            flash('Claim added successfully!')
+        except Error as e:
+            print(f"Error adding claim: {e}")
+            flash('An error occurred. Please try again.')
+
+        return redirect(url_for('view_topic', topic_id=topic_id))
+
+    # Fetch topic details (GET request)
+    topic = None
+    claims = []
+    try:
+        # Query the topic details
+        cursor.execute("""
+            SELECT topic.topicName, user.userName, topic.creationTime
+            FROM topic
+            JOIN user ON topic.postingUser = user.userID
+            WHERE topic.topicID = ?
+        """, (topic_id,))
+        topic_data = cursor.fetchone()
+        if topic_data:
+            topic = {
+                'topicName': topic_data[0],
+                'userName': topic_data[1],
+                'creationTime': datetime.datetime.fromtimestamp(topic_data[2]).strftime('%Y-%m-%d %H:%M:%S')
+            }
+
+        # Query the claims associated with the topic
+        cursor.execute("""
+            SELECT claim.claimID, claim.text, user.userName, claim.creationTime
+            FROM claim
+            JOIN user ON claim.postingUser = user.userID
+            WHERE claim.topic = ?
+            ORDER BY claim.creationTime DESC
+        """, (topic_id,))
+        claims_raw = cursor.fetchall()
+        claims = [
+            {
+                'claimID': claim[0],
+                'text': claim[1],
+                'userName': claim[2],
+                'creationTime': datetime.datetime.fromtimestamp(claim[3]).strftime('%Y-%m-%d %H:%M:%S')
+            } for claim in claims_raw
+        ]
+    except Error as e:
+        print(f"Error fetching topic or claims: {e}")
+        flash('An error occurred. Please try again.')
+
+    # Render the topic view template
+    return render_template('view_topic.html', topic=topic, claims=claims, topic_id=topic_id)
+
+
 @app.route('/signout')
 def signout():
     session.clear()
@@ -146,7 +218,7 @@ def login():
 
 @app.route("/topic")
 def topic():
-    return render_template('topic.html')
+    return render_template('view_topic.html')
 
 @app.route("/claim")
 def claim():

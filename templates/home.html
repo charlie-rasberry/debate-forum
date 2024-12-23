@@ -54,7 +54,7 @@
         {% if topics %}
             {% for topic in topics %}
                 <li>
-                    <p><strong>{{ topic['topicName'] }}</strong></p>
+                    <p><strong><a href="{{ url_for('view_topic', topic_id=topic['topicID']) }}">{{ topic['topicName'] }}</a></strong></p>
                     <p>Created by {{ topic['userName'] }} on {{ topic['creationTime'] }}</p>
                 </li>
             {% endfor %}
@@ -63,6 +63,7 @@
         {% endif %}
     </ul>
 </section>
+
 
     </main>
 </body>
